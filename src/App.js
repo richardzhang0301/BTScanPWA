@@ -3,80 +3,81 @@ import { Router, browserHistory, Route, Link } from 'react-router';
 import logo from './logo.svg';
 import './App.css';
 
-const logic = () => {
+class App extends Component {
+  state = {
+    text: ''
+  }
+
+  constructor(props) {
+    super(props);
+  }
   
+  getDateTime = () => {
+    var currentdate = new Date(); 
+    var datetime = " " + currentdate.getDate() + "/"
+                  + (currentdate.getMonth()+1)  + "/" 
+                  + currentdate.getFullYear() + " @ "  
+                  + currentdate.getHours() + ":"  
+                  + currentdate.getMinutes() + ":" 
+                  + currentdate.getSeconds();
+    return datetime;
+  }
 
-  let filters = [];
-  let options = {};
-  options.acceptAllAdvertisements = true;
-  options.keepRepeatedDevices = false;
-  options.active = false;
+  logic = () => {
+    var counter = 0;
+    let thisthis = this;
+    let filters = [];
+    let options = {};
+    options.acceptAllAdvertisements = true;
+    options.keepRepeatedDevices = false;
+    options.active = false;
 
-  console.log('Requesting Bluetooth Scan without options: ');
-  navigator.bluetooth.requestLEScan(options)
-  .then(function(scaner) {
-    navigator.bluetooth.addEventListener('advertisementreceived', event => {
-      console.log('  Device Name: ' + event.device.name);
+    console.log('Requesting Bluetooth Scan without options: ');
+    navigator.bluetooth.requestLEScan(options)
+    .then(function(scaner) {
+      navigator.bluetooth.addEventListener('advertisementreceived', event => {
+        counter++;
+        // let output = event.device.id
+        // thisthis.setState({
+        //   text: thisthis.state.text + output + '\r'
+        // });
+        console.log('  Device Name: ' + event.device.id);
+      });
+
+      setTimeout( function() {
+        scaner.stop();
+
+        thisthis.setState({
+            text: thisthis.state.text + '|' + counter + ' device scanned @ ' + thisthis.getDateTime() + '|'
+          });
+      }, 2000);
+    })
+    .catch(function(error) {
+      // And of course: error handling!
+      thisthis.setState({
+        text: thisthis.state.text + '|' + 'Need user interaction' + counter + ' device scanned @ ' + thisthis.getDateTime() + '|'
+      });
+      console.error('Connection failed!', error);
     });
 
     setTimeout( function() {
-      scaner.stop();
-    }, 2000);
-  })
-  .catch(function(error) {
-    // And of course: error handling!
-    console.error('Connection failed!', error);
-  });
-}
+      thisthis.logic();
+    }, 20000);
+  }
 
-const btnScanHandler = () => {
-  console.log('adsfasdf');
-  logic();
-};
+  btnScanHandler = () => {
+    this.logic();
+  }
 
-const Page = ({ title }) => (
-    <div className="App">
-      <div className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <button id="btnAdd" onClick={btnScanHandler}>Scan</button>
-        <h2>{title}</h2>
-      </div>
+  render() {
+    return (
+      <div className="App">  
+        <button id="btnAdd" onClick={this.btnScanHandler}>Scan</button>
       <p className="App-intro">
-        This is the {title} page.
-      </p>
-      <p>
-        <Link to="/">Home</Link>
-      </p>
-      <p>
-        <Link to="/about">About</Link>
-      </p>
-      <p>
-        <Link to="/settings">Settings</Link>
+        <label>{this.state.text}</label>
       </p>
       
     </div>
-);
-
-const Home = (props) => (
-  <Page title="Home"/>
-);
-
-const About = (props) => (
-  <Page title="About"/>
-);
-
-const Settings = (props) => (
-  <Page title="Settings"/>
-);
-
-class App extends Component {
-  render() {
-    return (
-      <Router history={browserHistory}>
-        <Route path="/" component={Home}/>
-        <Route path="/about" component={About}/>
-        <Route path="/settings" component={Settings}/>
-      </Router>
     );
   }
 }
