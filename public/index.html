@@ -27,6 +27,12 @@
       .App-intro {
         font-size: large;
       }
+
+      .add-button {
+        width: 250px;
+        padding: 20px;
+        display: none;
+      }
     </style>
   </head>
   <head>
@@ -42,6 +48,7 @@
     <!-- Make sure theme-color is defined -->
     <meta name="theme-color" content="#536878">
     <title>React App</title>
+    <button class="add-button" onClick={this.btnA2HSHandler}>Add to home screen</button>
   </head>
   <body>
     <!-- Filler HTML as our app starts up -->
@@ -57,12 +64,30 @@
     <script>
       if ('serviceWorker' in navigator) {
         let deferredPrompt;
+        const addBtn = document.querySelector('.add-button');
         window.addEventListener('beforeinstallprompt', (e) => {
-          //e.preventDefault();
+          e.preventDefault();
           deferredPrompt = e;
           //btnAdd.style.display = 'block';
+          addBtn.style.display = 'block';
           console.log('beforeinstallprompt invoked');
         });
+
+        addBtn.addEventListener('click', (e) => {
+          // hide our user interface that shows our A2HS button
+          addBtn.style.display = 'none';
+          // Show the prompt
+          deferredPrompt.prompt();
+          // Wait for the user to respond to the prompt
+          deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === 'accepted') {
+                console.log('User accepted the A2HS prompt');
+              } else {
+                console.log('User dismissed the A2HS prompt');
+              }
+              deferredPrompt = null;
+            });
+          });
 
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('service-worker.js').then(function(registration) {
